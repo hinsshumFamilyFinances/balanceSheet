@@ -55,7 +55,7 @@ if __name__ == "__main__":
         # 更新账户持仓股票的股价
         for i in range(sheet.rows):
             # 剔除第一行和最后一行
-            if(i == 0 or i == (sheet.rows - 1)):
+            if(i == 0 or i == (sheet.rows - 1) or i == (sheet.rows - 2)):
                 continue
             # 获取股票代码
             stock_code = sheet.get_value("B{0}".format(i + 1))
