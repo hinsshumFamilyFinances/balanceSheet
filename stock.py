@@ -18,10 +18,9 @@ class Sheet(object):
     def __init__(self, name="账户明细.xlsx"):
         self.name = name
         self.book = openpyxl.load_workbook(name)
+        self.idx = 0
         # 获取第一张表
-        self.sheet = self.book[self.book.sheetnames[0]]
-        self.rows = self.sheet.max_row
-        self.cols = self.sheet.max_column
+        self.set_next_sheet()
 
     def get_value(self, postion):
         if isinstance(postion, str) != True:
@@ -40,6 +39,14 @@ class Sheet(object):
         self.book.save(self.name)
         self.book.close()
 
+    def set_next_sheet(self):
+        self.sheet = self.book[self.book.sheetnames[self.idx]]
+        self.rows = self.sheet.max_row
+        self.cols = self.sheet.max_column
+        self.idx = self.idx + 1
+        if self.idx >= len(self.book.worksheets):
+            self.idx = len(self.book.worksheets) - 1;
+
 if __name__ == "__main__":
     source = input("请输入股票源地址（默认使用\"sina\"）：")
     name = input("请输入需要更新的表格（默认更新\"账户明细.xlsx\"）：")
@@ -52,17 +59,19 @@ if __name__ == "__main__":
         stock = Stock(source)
         # 实例化excel表格
         sheet = Sheet()
-        # 更新账户持仓股票的股价
-        for i in range(sheet.rows):
-            # 剔除第一行和最后一行
-            if(i == 0 or i == (sheet.rows - 1) or i == (sheet.rows - 2)):
-                continue
-            # 获取股票代码
-            stock_code = sheet.get_value("B{0}".format(i + 1))
-            # 获取最新股价
-            stock_price = stock.get_stock_price("{0}".format(stock_code))
-            # 更新表格的股价
-            sheet.set_value("C{0}".format(i + 1), stock_price)
+        for idx in range(2):
+            # 更新账户持仓股票的股价
+            for i in range(sheet.rows):
+                # 剔除第一行、最后一行和最后第二行
+                if(i == 0 or i == (sheet.rows - 1) or i == (sheet.rows - 2)):
+                    continue
+                # 获取股票代码
+                stock_code = sheet.get_value("B{0}".format(i + 1))
+                # 获取最新股价
+                stock_price = stock.get_stock_price("{0}".format(stock_code))
+                # 更新表格的股价
+                sheet.set_value("C{0}".format(i + 1), stock_price)
+            sheet.set_next_sheet()
     finally:
         if sheet != None:
             # 关闭表格
